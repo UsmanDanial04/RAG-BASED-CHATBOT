@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini Echo — RAG AI Chatbot</title>
+    <meta name="description" content="Gemini Echo is a RAG-powered AI chatbot that can answer questions from your own documents using Google Gemini." />
+
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons for modern vector icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Marked JS for parsing markdown responses from Gemini -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Main Chat Area -->
+      <main class="chat-section">
+        <!-- Chat Header -->
+        <header class="chat-header">
+          <div class="header-brand">
+            <div class="brand-logo">
+              <div class="logo-pulse"></div>
+              <i data-lucide="sparkles"></i>
+            </div>
+            <div class="brand-info">
+              <h1>Gemini Echo</h1>
+              <div class="status-indicator">
+                <span class="status-dot green" id="status-dot"></span>
+                <span class="status-text" id="status-text">Ready</span>
+              </div>
+            </div>
+          </div>
+          <div class="header-actions">
+            <!-- RAG badge — shown when knowledge base has documents -->
+            <div id="rag-badge" class="rag-badge hidden" title="RAG Knowledge Base Active">
+              <i data-lucide="database"></i>
+              <span id="rag-doc-count">0</span> docs
+            </div>
+            <button id="toggle-settings-btn" class="icon-btn" title="Settings">
+              <i data-lucide="settings"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- Message List -->
+        <div id="chat-messages" class="messages-container">
+          <!-- Initial Welcome Message -->
+          <div class="message assistant">
+            <div class="message-avatar">
+              <i data-lucide="bot"></i>
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-content">
+                <p>Hello! I am <strong>Gemini Echo</strong>, your RAG-powered AI companion. Upload documents in the <strong>Settings → Knowledge Base</strong> panel and I'll answer questions grounded in your content. You can also chat freely without any documents.</p>
+              </div>
+              <div class="message-meta">
+                <span>System</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <footer class="chat-footer">
+          <div class="input-container">
+            <button id="mic-btn" class="mic-btn" title="Speak (STT)">
+              <i data-lucide="mic"></i>
+              <div class="mic-ripple"></div>
+              <div class="mic-ripple"></div>
+            </button>
+            <div class="input-wrapper">
+              <textarea id="chat-input" placeholder="Ask about your documents or anything else…" rows="1"></textarea>
+              <button id="send-btn" class="send-btn" title="Send message">
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+          </div>
+          <div class="audio-waveform-container" id="waveform-container">
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <span class="waveform-text">Listening...</span>
+          </div>
+        </footer>
+      </main>
+
+      <!-- Settings Panel / Drawer -->
+      <aside id="settings-panel" class="settings-panel hidden">
+        <div class="settings-header">
+          <h2><i data-lucide="sliders"></i> Settings</h2>
+          <button id="close-settings-btn" class="icon-btn">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="settings-content">
+
+          <!-- ============================================================
+               KNOWLEDGE BASE (RAG) SECTION
+               ============================================================ -->
+          <div class="setting-section-title">
+            <i data-lucide="database"></i>
+            Knowledge Base
+          </div>
+
+          <!-- RAG Toggle -->
+          <div class="setting-group">
+            <div class="flex-row">
+              <label>Use RAG Retrieval</label>
+              <div class="toggle-container">
+                <span class="toggle-label">Enabled</span>
+                <label class="switch">
+                  <input type="checkbox" id="rag-toggle" checked>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+            <span class="setting-hint">When enabled, your documents are searched for relevant context before each reply.</span>
+          </div>
+
+          <!-- Upload Zone -->
+          <div class="setting-group">
+            <label>Upload Documents</label>
+            <div class="upload-zone" id="upload-zone">
+              <div class="upload-zone-inner">
+                <div class="upload-icon-wrap">
+                  <i data-lucide="upload-cloud"></i>
+                </div>
+                <p class="upload-primary">Drop files here or <span class="upload-link">browse</span></p>
+                <p class="upload-hint">PDF, TXT, DOCX, MD · Max 20 MB</p>
+              </div>
+              <input type="file" id="file-input" accept=".pdf,.txt,.md,.docx" multiple hidden />
+            </div>
+            <!-- Upload progress -->
+            <div id="upload-progress" class="upload-progress hidden">
+              <div class="progress-bar-wrap">
+                <div class="progress-bar" id="progress-bar"></div>
+              </div>
+              <span id="upload-status-text" class="upload-status-text">Uploading…</span>
+            </div>
+          </div>
+
+          <!-- Document List -->
+          <div class="setting-group" id="doc-list-group">
+            <label>Indexed Documents (<span id="doc-count-label">0</span>)</label>
+            <div id="doc-list" class="doc-list">
+              <div class="doc-list-empty" id="doc-list-empty">
+                <i data-lucide="inbox"></i>
+                <span>No documents uploaded yet.</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="settings-divider" />
+
+          <!-- ============================================================
+               MODEL & API SECTION
+               ============================================================ -->
+          <div class="setting-section-title">
+            <i data-lucide="cpu"></i>
+            Model &amp; API
+          </div>
+
+          <!-- API Keys -->
+          <div class="setting-group">
+            <label for="api-key-input">Gemini API Key</label>
+            <div class="input-with-icon">
+              <input type="password" id="api-key-input" placeholder="Enter Gemini API key...">
+              <button id="toggle-key-visibility" class="inner-icon-btn" type="button">
+                <i data-lucide="eye"></i>
+              </button>
+            </div>
+            <span class="setting-hint">Stored locally in your browser.</span>
+          </div>
+
+          <!-- Model Choice -->
+          <div class="setting-group">
+            <label for="model-select">Gemini Model</label>
+            <select id="model-select">
+              <option value="gemini-3.6-flash" selected>Gemini 3.6 Flash</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            </select>
+          </div>
+
+          <!-- System Prompt -->
+          <div class="setting-group">
+            <label for="system-instruction">System Instructions</label>
+            <textarea id="system-instruction" placeholder="Define the chatbot's role..." rows="3">You are a helpful, witty, and concise AI assistant named Gemini Echo. When answering from documents, cite the relevant source. Keep responses clear and informative.</textarea>
+          </div>
+
+          <hr class="settings-divider" />
+
+          <!-- ============================================================
+               VOICE SECTION
+               ============================================================ -->
+          <div class="setting-section-title">
+            <i data-lucide="volume-2"></i>
+            Voice
+          </div>
+
+          <!-- TTS Voice -->
+          <div class="setting-group">
+            <div class="flex-row">
+              <label for="voice-select">Speech Output (TTS)</label>
+              <div class="toggle-container">
+                <span class="toggle-label">Auto-speak</span>
+                <label class="switch">
+                  <input type="checkbox" id="auto-speak-toggle" checked>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+            <select id="voice-select">
+              <option value="" disabled selected>Loading system voices...</option>
+            </select>
+          </div>
+
+          <!-- Speech Controls -->
+          <div class="setting-group">
+            <div class="slider-row">
+              <span class="slider-label">Speed: <span id="rate-value">1.0x</span></span>
+              <input type="range" id="voice-rate" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Pitch: <span id="pitch-value">1.0</span></span>
+              <input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" value="1">
+            </div>
+          </div>
+
+          <hr class="settings-divider" />
+
+          <!-- Actions -->
+          <div class="settings-actions">
+            <button id="clear-chat-btn" class="danger-btn">
+              <i data-lucide="trash-2"></i> Clear Chat
+            </button>
+            <button id="save-settings-btn" class="primary-btn">
+              <i data-lucide="save"></i> Save Settings
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <!-- Script Entrypoint -->
+    <script type="module" src="/static/main.js"></script>
+  </body>
+</html>
