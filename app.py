@@ -56,10 +56,33 @@ class ChatRequest(BaseModel):
     system_instruction: str = None
     use_rag: bool = True   # Whether to retrieve context from knowledge base
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+@app.post("/api/login")
+async def login(request: LoginRequest):
+    valid_email    = os.getenv("LOGIN_EMAIL", "").strip()
+    valid_password = os.getenv("LOGIN_PASSWORD", "").strip()
+    if not valid_email or not valid_password:
+        raise HTTPException(status_code=500, detail="Login credentials not configured on server.")
+    if request.email.strip().lower() != valid_email.lower() or request.password != valid_password:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    return {"status": "ok", "email": request.email}
+
+@app.get("/login", response_class=HTMLResponse)
+async def get_login():
+    try:
+        with open("login.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="login.html not found at project root")
+
+
 @app.get("/", response_class=HTMLResponse)
 async def get_index():
     try:
