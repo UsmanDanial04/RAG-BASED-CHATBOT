@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FaceAuth — Create Account</title>
+  <meta name="description" content="Register your face to create a secure account with FaceAuth AI recognition." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-dark: #070b14;
+      --bg-card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --accent: #6c63ff;
+      --accent2: #00d4ff;
+      --accent-glow: rgba(108,99,255,0.4);
+      --success: #00e5a0;
+      --warning: #ffb347;
+      --danger: #ff5c7a;
+      --text: #e8eaf6;
+      --text-muted: #7b82a3;
+      --radius: 20px;
+      --radius-sm: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .bg-gradient {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 80% 10%, rgba(0,212,255,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 20% 90%, rgba(108,99,255,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,229,160,0.05) 0%, transparent 50%),
+        var(--bg-dark);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.12); }
+    }
+
+    .particles { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .particle {
+      position: absolute; width: 2px; height: 2px;
+      background: rgba(0,212,255,0.4); border-radius: 50%;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      from { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      to { transform: translateY(-10vh) translateX(-30px); opacity: 0; }
+    }
+
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 32px 24px 48px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 40px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03) inset,
+        0 32px 80px rgba(0,0,0,0.5),
+        0 0 80px rgba(0,212,255,0.05);
+      animation: cardIn 0.6s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 32px; }
+    .logo {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 64px; height: 64px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      box-shadow: 0 8px 32px rgba(0,212,255,0.4);
+      margin-bottom: 16px;
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(0,212,255,0.4); }
+      50% { box-shadow: 0 8px 48px rgba(0,212,255,0.7), 0 0 80px rgba(108,99,255,0.2); }
+    }
+    .logo svg { width: 32px; height: 32px; }
+    h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    .subtitle { color: var(--text-muted); font-size: 0.875rem; margin-top: 4px; }
+
+    /* ── Steps indicator ── */
+    .steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-bottom: 28px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+    .step.active { color: var(--accent2); }
+    .step.done { color: var(--success); }
+    .step-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 2px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .step.active .step-dot { background: var(--accent2); border-color: var(--accent2); color: #000; }
+    .step.done .step-dot { background: var(--success); border-color: var(--success); color: #000; }
+    .step-line { width: 32px; height: 2px; background: var(--border); border-radius: 2px; transition: background 0.5s; }
+    .step-line.done { background: var(--success); }
+
+    /* ── Input ── */
+    .input-group { position: relative; margin-bottom: 20px; }
+    .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .input-field {
+      width: 100%; padding: 14px 16px 14px 46px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: inherit; font-size: 0.95rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .input-field::placeholder { color: var(--text-muted); }
+    .input-field:focus {
+      border-color: var(--accent2); background: rgba(0,212,255,0.06);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.12);
+    }
+    .input-field.error { border-color: var(--danger); }
+
+    /* ── Section heading ── */
+    .section-label {
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;
+    }
+
+    /* ── Camera section ── */
+    .camera-wrap {
+      position: relative;
+      width: 100%; aspect-ratio: 4/3;
+      border-radius: var(--radius-sm); overflow: hidden;
+      background: #0a0f1e; border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .camera-wrap::before {
+      content: ''; position: absolute; inset: 0; z-index: 3;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, rgba(0,212,255,0.05) 0%, transparent 50%, rgba(108,99,255,0.04) 100%);
+      pointer-events: none;
+    }
+    #video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; transform: scaleX(-1);
+    }
+    #overlay {
+      position: absolute; inset: 0; z-index: 2;
+      width: 100%; height: 100%;
+      pointer-events: none; transform: scaleX(-1);
+    }
+
+    .face-guide {
+      position: absolute; z-index: 1;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 55%; aspect-ratio: 1; border-radius: 50%;
+      border: 2px dashed rgba(0,212,255,0.3);
+      animation: guideRotate 12s linear infinite; pointer-events: none;
+    }
+    @keyframes guideRotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    .face-guide::after {
+      content: ''; position: absolute; inset: -8px;
+      border-radius: 50%;
+      border: 1px dashed rgba(108,99,255,0.15);
+      animation: guideRotate 8s linear infinite reverse;
+    }
+
+    .corner { position: absolute; z-index: 4; width: 20px; height: 20px; pointer-events: none; }
+    .corner.tl { top: 10px; left: 10px; border-top: 2px solid var(--accent2); border-left: 2px solid var(--accent2); border-radius: 4px 0 0 0; }
+    .corner.tr { top: 10px; right: 10px; border-top: 2px solid var(--accent2); border-right: 2px solid var(--accent2); border-radius: 0 4px 0 0; }
+    .corner.bl { bottom: 10px; left: 10px; border-bottom: 2px solid var(--accent2); border-left: 2px solid var(--accent2); border-radius: 0 0 0 4px; }
+    .corner.br { bottom: 10px; right: 10px; border-bottom: 2px solid var(--accent2); border-right: 2px solid var(--accent2); border-radius: 0 0 4px 0; }
+
+    .scan-line {
+      position: absolute; left: 0; right: 0; z-index: 3; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      box-shadow: 0 0 12px var(--accent);
+      animation: scanAnim 2.5s linear infinite; pointer-events: none; top: 0; opacity: 0;
+    }
+    .scan-line.active { opacity: 1; }
+    @keyframes scanAnim { 0% { top: 0%; } 100% { top: 100%; } }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute; inset: 0; z-index: 10; background: #0a0f1e;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      border-radius: var(--radius-sm); transition: opacity 0.5s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .loading-ring {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(0,212,255,0.2);
+      border-top-color: var(--accent2);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay p { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      margin-bottom: 20px; min-height: 44px;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .status-bar.ok { border-color: rgba(0,229,160,0.35); background: rgba(0,229,160,0.07); }
+    .status-bar.bad { border-color: rgba(255,92,122,0.35); background: rgba(255,92,122,0.07); }
+    .status-bar.warn { border-color: rgba(255,179,71,0.35); background: rgba(255,179,71,0.07); }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--text-muted); transition: background 0.3s;
+    }
+    .status-bar.ok .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); animation: dotPulse 1.5s ease-in-out infinite; }
+    .status-bar.bad .status-dot { background: var(--danger); }
+    .status-bar.warn .status-dot { background: var(--warning); }
+    @keyframes dotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-text { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
+    .status-bar.ok .status-text { color: var(--success); }
+    .status-bar.bad .status-text { color: var(--danger); }
+    .status-bar.warn .status-text { color: var(--warning); }
+
+    /* ── Capture progress ── */
+    .capture-progress {
+      display: flex; gap: 8px; margin-bottom: 20px;
+    }
+    .capture-slot {
+      flex: 1; aspect-ratio: 1; border-radius: 8px;
+      border: 2px dashed rgba(255,255,255,0.12);
+      overflow: hidden; position: relative;
+      transition: border-color 0.3s;
+      background: rgba(255,255,255,0.03);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .capture-slot img {
+      width: 100%; height: 100%; object-fit: cover;
+      border-radius: 6px;
+    }
+    .capture-slot.empty::before {
+      content: attr(data-index);
+      font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.15);
+    }
+    .capture-slot.filled { border-color: var(--success); border-style: solid; }
+    .capture-slot.filled::after {
+      content: '✓';
+      position: absolute; bottom: 4px; right: 4px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--success); color: #000;
+      font-size: 0.6rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 16px; text-align: center;
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      background: rgba(255,255,255,0.06); border-radius: 50px;
+      height: 6px; margin-bottom: 20px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 50px;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      transition: width 0.5s cubic-bezier(.16,1,.3,1);
+      width: 0%;
+    }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 10px; }
+    .btn {
+      width: 100%; padding: 14px;
+      border: none; border-radius: var(--radius-sm);
+      font-family: inherit; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; outline: none;
+      transition: all 0.2s cubic-bezier(.16,1,.3,1);
+      position: relative; overflow: hidden;
+    }
+    .btn-capture {
+      background: rgba(0,212,255,0.12);
+      border: 1px solid rgba(0,212,255,0.3);
+      color: var(--accent2);
+    }
+    .btn-capture:not(:disabled):hover {
+      background: rgba(0,212,255,0.2);
+      border-color: var(--accent2);
+      transform: translateY(-1px);
+    }
+    .btn-capture:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(108,99,255,0.4);
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, #7c72ff, var(--accent2));
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .btn-primary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,0.6); }
+    .btn-primary:not(:disabled):hover::before { opacity: 1; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+    .btn-content { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
+    }
+
+    .footer-link {
+      text-align: center; margin-top: 20px;
+      font-size: 0.875rem; color: var(--text-muted);
+    }
+    .footer-link a { color: var(--accent); text-decoration: none; font-weight: 500; transition: opacity 0.2s; }
+    .footer-link a:hover { opacity: 0.8; }
+
+    /* Instructions tip */
+    .tip-box {
+      background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.2);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      margin-bottom: 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6;
+    }
+    .tip-box strong { color: var(--accent2); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 50px; padding: 12px 24px;
+      font-size: 0.875rem; font-weight: 500; color: var(--text);
+      transition: transform 0.4s cubic-bezier(.16,1,.3,1), opacity 0.4s;
+      opacity: 0; z-index: 100; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.error { border-color: rgba(255,92,122,0.4); background: rgba(255,92,122,0.15); color: var(--danger); }
+    .toast.success { border-color: rgba(0,229,160,0.4); background: rgba(0,229,160,0.12); color: var(--success); }
+
+    /* Shake animation for error on submit */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake { animation: shake 0.4s ease-in-out; }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="page">
+    <div class="card">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 4C9.373 4 4 9.373 4 16s5.373 12 12 12 12-5.373 12-12S22.627 4 16 4z" stroke="white" stroke-width="2" fill="none"/>
+            <circle cx="12" cy="14" r="1.5" fill="white"/>
+            <circle cx="20" cy="14" r="1.5" fill="white"/>
+            <path d="M11 19c.5 1.5 2 2.5 5 2.5s4.5-1 5-2.5" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M8 9 L4 9 L4 13" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M24 9 L28 9 L28 13" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <h1>Create your account</h1>
+        <p class="subtitle">Enroll your face for password-free authentication</p>
+      </div>
+
+      <!-- Steps indicator -->
+      <div class="steps">
+        <div class="step active" id="step1Indicator">
+          <div class="step-dot">1</div>
+          <span>Username</span>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step" id="step2Indicator">
+          <div class="step-dot">2</div>
+          <span>Capture</span>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step" id="step3Indicator">
+          <div class="step-dot">3</div>
+          <span>Register</span>
+        </div>
+      </div>
+
+      <!-- Username -->
+      <div class="input-group">
+        <span class="input-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <input id="username" type="text" class="input-field" placeholder="Choose a username" autocomplete="off" spellcheck="false" />
+      </div>
+
+      <!-- Tip -->
+      <div class="tip-box">
+        <strong>How to enroll:</strong> Look directly at the camera and capture <strong>4 photos</strong> from slightly different angles. This helps the AI recognize you better in varying conditions.
+      </div>
+
+      <!-- Camera -->
+      <div>
+        <p class="section-label">Face Camera</p>
+        <div class="camera-wrap" id="cameraWrap">
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-ring"></div>
+            <p>Loading face detection…</p>
+          </div>
+          <div class="face-guide"></div>
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
+          <div class="scan-line" id="scanLine"></div>
+          <video id="video" autoplay muted playsinline></video>
+          <canvas id="overlay"></canvas>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-bar" id="statusBar">
+        <div class="status-dot"></div>
+        <span class="status-text" id="statusText">Initializing camera…</span>
+      </div>
+
+      <!-- Capture progress slots -->
+      <div>
+        <p class="section-label">Captured Samples (<span id="captureCount">0</span>/4)</p>
+        <div class="capture-progress" id="captureProgress">
+          <div class="capture-slot empty" id="slot0" data-index="1"></div>
+          <div class="capture-slot empty" id="slot1" data-index="2"></div>
+          <div class="capture-slot empty" id="slot2" data-index="3"></div>
+          <div class="capture-slot empty" id="slot3" data-index="4"></div>
+        </div>
+        <!-- Progress bar -->
+        <div class="progress-wrap">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-capture" id="captureBtn" disabled>
+          <span class="btn-content">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+            Capture
+          </span>
+        </button>
+        <button class="btn btn-primary" id="submitBtn" disabled>
+          <span class="btn-content">
+            <div class="spinner" id="spinner"></div>
+            <span id="btnLabel">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+              Register
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer-link">
+        Already have an account? <a href="login.html">Sign in →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+  <script>
+    const API_BASE = "http://localhost:5000";
+    const REQUIRED_SAMPLES = 4;
+
+    /* ── Particles ── */
+    const particlesEl = document.getElementById("particles");
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement("div");
+      p.className = "particle";
+      p.style.left = Math.random() * 100 + "%";
+      p.style.animationDuration = (8 + Math.random() * 12) + "s";
+      p.style.animationDelay = (Math.random() * 10) + "s";
+      p.style.width = p.style.height = (1 + Math.random() * 2) + "px";
+      p.style.background = Math.random() > 0.5 ? "rgba(0,212,255,0.4)" : "rgba(108,99,255,0.5)";
+      particlesEl.appendChild(p);
+    }
+
+    /* ── Elements ── */
+    const video        = document.getElementById("video");
+    const overlay      = document.getElementById("overlay");
+    const ctx          = overlay.getContext("2d");
+    const statusBar    = document.getElementById("statusBar");
+    const statusText   = document.getElementById("statusText");
+    const captureBtn   = document.getElementById("captureBtn");
+    const submitBtn    = document.getElementById("submitBtn");
+    const spinner      = document.getElementById("spinner");
+    const btnLabel     = document.getElementById("btnLabel");
+    const scanLine     = document.getElementById("scanLine");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const captureCount = document.getElementById("captureCount");
+    const progressFill = document.getElementById("progressFill");
+    const slots        = [0,1,2,3].map(i => document.getElementById("slot" + i));
+
+    let faceIsGood    = false;
+    let capturedImages = [];
+
+    /* ── Status ── */
+    function setStatus(msg, type = "neutral") {
+      statusText.textContent = msg;
+      statusBar.className = "status-bar " + type;
+      scanLine.classList.toggle("active", type === "ok");
+    }
+
+    /* ── Toast ── */
+    let toastTimer;
+    function showToast(msg, type = "") {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = "toast show " + type;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.className = "toast"; }, 3500);
+    }
+
+    /* ── Step indicator ── */
+    function updateSteps() {
+      const n = capturedImages.length;
+      if (n === 0) {
+        setStepState(1, "active"); setStepState(2, ""); setStepState(3, "");
+        setLineState(1, false); setLineState(2, false);
+      } else if (n < REQUIRED_SAMPLES) {
+        setStepState(1, "done"); setStepState(2, "active"); setStepState(3, "");
+        setLineState(1, true); setLineState(2, false);
+      } else {
+        setStepState(1, "done"); setStepState(2, "done"); setStepState(3, "active");
+        setLineState(1, true); setLineState(2, true);
+      }
+    }
+    function setStepState(n, state) {
+      document.getElementById("step" + n + "Indicator").className = "step " + state;
+    }
+    function setLineState(n, done) {
+      document.getElementById("line" + n).className = "step-line " + (done ? "done" : "");
+    }
+
+    /* ── MediaPipe ── */
+    const faceDetection = new FaceDetection({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
+    });
+    faceDetection.setOptions({ model: "short", minDetectionConfidence: 0.6 });
+
+    faceDetection.onResults((results) => {
+      if (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight) {
+        overlay.width = video.videoWidth;
+        overlay.height = video.videoHeight;
+      }
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+      if (!results.detections || results.detections.length === 0) {
+        setStatus("No face detected — look at the camera", "bad");
+        faceIsGood = false;
+      } else if (results.detections.length > 1) {
+        setStatus("Multiple faces — only one person at a time", "warn");
+        faceIsGood = false;
+      } else {
+        const box = results.detections[0].boundingBox;
+        const fw = box.width  * overlay.width;
+        const fh = box.height * overlay.height;
+        const fx = box.xCenter * overlay.width  - fw / 2;
+        const fy = box.yCenter * overlay.height - fh / 2;
+        const areaRatio = box.width * box.height;
+        faceIsGood = areaRatio > 0.05;
+
+        const color = faceIsGood ? "#00e5a0" : "#ffb347";
+        ctx.save();
+        ctx.shadowColor = color; ctx.shadowBlur = 14;
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        roundRect(ctx, fx, fy, fw, fh, 10);
+        ctx.restore();
+
+        if (results.detections[0].landmarks) {
+          results.detections[0].landmarks.forEach(lm => {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(lm.x * overlay.width, lm.y * overlay.height, 3, 0, Math.PI * 2);
+            ctx.fillStyle = faceIsGood ? "rgba(0,229,160,0.8)" : "rgba(255,179,71,0.8)";
+            ctx.shadowColor = color; ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.restore();
+          });
+        }
+
+        setStatus(
+          faceIsGood ? "Face detected — press Capture to add sample" : "Move closer to the camera",
+          faceIsGood ? "ok" : "warn"
+        );
+      }
+
+      captureBtn.disabled = !faceIsGood || capturedImages.length >= REQUIRED_SAMPLES;
+    });
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath(); ctx.stroke();
+    }
+
+    /* ── Camera start ── */
+    const camera = new Camera(video, {
+      onFrame: async () => { await faceDetection.send({ image: video }); },
+      width: 640, height: 480,
+    });
+    camera.start().then(() => {
+      loadingOverlay.classList.add("hidden");
+      setStatus("Position your face in the oval guide", "neutral");
+    }).catch(err => {
+      setStatus("Camera access denied — please allow camera", "bad");
+      loadingOverlay.classList.add("hidden");
+    });
+
+    /* ── Flash animation on capture ── */
+    function flashCapture() {
+      const flash = document.createElement("div");
+      flash.style.cssText = `
+        position:absolute;inset:0;z-index:20;
+        background:rgba(255,255,255,0.15);
+        border-radius:${getComputedStyle(document.querySelector('.camera-wrap')).borderRadius};
+        animation:flashFade 0.3s ease-out forwards;pointer-events:none;
+      `;
+      document.querySelector('.camera-wrap').appendChild(flash);
+      if (!document.querySelector('#flashStyle')) {
+        const s = document.createElement('style');
+        s.id = 'flashStyle';
+        s.textContent = '@keyframes flashFade{from{opacity:1}to{opacity:0}}';
+        document.head.appendChild(s);
+      }
+      setTimeout(() => flash.remove(), 350);
+    }
+
+    /* ── Capture button ── */
+    captureBtn.addEventListener("click", () => {
+      const idx = capturedImages.length;
+      if (idx >= REQUIRED_SAMPLES) return;
+
+      const tmpCanvas = document.createElement("canvas");
+      tmpCanvas.width  = video.videoWidth;
+      tmpCanvas.height = video.videoHeight;
+      const tmpCtx = tmpCanvas.getContext("2d");
+      tmpCtx.save();
+      tmpCtx.scale(-1, 1);
+      tmpCtx.drawImage(video, -tmpCanvas.width, 0);
+      tmpCtx.restore();
+      const dataUrl = tmpCanvas.toDataURL("image/jpeg", 0.9);
+
+      capturedImages.push(dataUrl);
+      flashCapture();
+
+      // Update slot thumbnail
+      const slot = slots[idx];
+      slot.classList.remove("empty");
+      slot.classList.add("filled");
+      slot.removeAttribute("data-index");
+      const img = document.createElement("img");
+      img.src = dataUrl;
+      slot.appendChild(img);
+
+      captureCount.textContent = capturedImages.length;
+      progressFill.style.width = (capturedImages.length / REQUIRED_SAMPLES * 100) + "%";
+
+      updateSteps();
+
+      if (capturedImages.length >= REQUIRED_SAMPLES) {
+        captureBtn.disabled = true;
+        submitBtn.disabled = false;
+        setStatus("All samples captured — click Register to finish!", "ok");
+        showToast("4 samples captured! Ready to register.", "success");
+      } else {
+        setStatus(`Sample ${capturedImages.length} captured — ${REQUIRED_SAMPLES - capturedImages.length} more needed`, "ok");
+      }
+    });
+
+    /* ── Submit registration ── */
+    submitBtn.addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      if (!username) {
+        showToast("Please enter a username first", "error");
+        const input = document.getElementById("username");
+        input.classList.add("error");
+        input.classList.add("shake");
+        input.focus();
+        setTimeout(() => { input.classList.remove("shake"); }, 500);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      spinner.style.display = "block";
+      btnLabel.style.display = "none";
+      setStatus("Registering your face… please wait", "warn");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/register/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username, images: capturedImages }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Registration failed");
+
+        setStatus("Registration successful! Redirecting to login…", "ok");
+        showToast("Account created! Welcome, " + username + " 🎉", "success");
+        setStepState(3, "done");
+        setTimeout(() => { window.location.href = "login.html"; }, 1200);
+      } catch (err) {
+        showToast(err.message, "error");
+        setStatus("Registration failed — " + err.message, "bad");
+        submitBtn.disabled = false;
+        spinner.style.display = "none";
+        btnLabel.style.display = "inline";
+      }
+    });
+  </script>
+</body>
+</html>
